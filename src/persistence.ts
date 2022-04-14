@@ -191,3 +191,32 @@ function unserialiseBuffer(persisted: PersistedBuffer): Buffer {
   }
   return buffer;
 }
+
+
+export function storeDataMap(
+  data: { [key: string]: string; },
+  path: string,
+){
+  const jsonContent = JSON.stringify(data)
+  fs.writeFile(path, jsonContent, 'utf8', function (err) {
+    if (err) {
+        console.log("An error occured while writing JSON Object to File.");
+        return console.log(err);
+    }
+    console.log("JSON file has been saved.");
+  });
+}
+
+export function loadDataMap(
+  path: string,
+): { [key: string]: string; } {
+  let mapRecord: { [key: string]: string; } = {};
+  try {
+    fs.statSync(path)
+  } catch (error) {
+    fs.writeFileSync(path, '{}');
+  }
+  mapRecord = fs.readJsonSync(path)
+  return mapRecord
+
+}

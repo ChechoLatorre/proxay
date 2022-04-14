@@ -57,7 +57,6 @@ export function findRecordMatches(
       requestBody,
       potentialMatch
     );
-
     if (similarityScore < bestSimilarityScore) {
       bestSimilarityScore = similarityScore;
       bestMatches = [potentialMatch];

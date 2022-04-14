@@ -7,10 +7,10 @@ import net from "net";
 import { ensureBuffer } from "./buffer";
 import { findNextRecordToReplay, findRecordMatches } from "./matcher";
 import { Mode } from "./modes";
-import { Persistence } from "./persistence";
+import { Persistence, storeDataMap, loadDataMap } from "./persistence";
 import { Request, send } from "./sender";
 import { TapeRecord } from "./tape";
-
+import path from "path";
 /**
  * A server that proxies or replays requests depending on the mode.
  */
@@ -27,6 +27,8 @@ export class RecordReplayServer {
   private defaultTape: string;
   private replayedTapes: Set<TapeRecord> = new Set();
   private preventConditionalRequests?: boolean;
+  private mapRecord:  { [key: string]: string; } = {};
+  private tapeDir: string;
 
   constructor(options: {
     initialMode: Mode;
@@ -51,7 +53,8 @@ export class RecordReplayServer {
     this.defaultTape = options.defaultTapeName;
     this.preventConditionalRequests = options.preventConditionalRequests;
     this.loadTape(this.defaultTape);
-
+    this.mapRecord = loadDataMap(path.join(options.tapeDir, `${this.defaultTape}.json`));
+    this.tapeDir = options.tapeDir
     const handler = async (
       req: http.IncomingMessage,
       res: http.ServerResponse
@@ -305,9 +308,14 @@ export class RecordReplayServer {
         timeout: this.timeout,
       }
     );
-    this.addRecordToTape(record);
-    if (this.loggingEnabled) {
-      console.log(`Recorded: ${request.method} ${request.path}`);
+    let idRecord = Buffer.from(record.request.body).toString('base64') + Buffer.from(record.response.body).toString('base64')
+    if(!this.mapRecord[idRecord]) {
+      this.mapRecord[idRecord] = idRecord
+      storeDataMap(this.mapRecord,path.join(this.tapeDir, `${this.defaultTape}.json`))
+      this.addRecordToTape(record);
+      if (this.loggingEnabled) {
+        console.log(`Recorded: ${request.method} ${request.path}`);
+      }
     }
     return record;
   }
@@ -398,8 +406,10 @@ export class RecordReplayServer {
     }
     switch (this.mode) {
       case "record":
-        this.currentTapeRecords = [];
-        this.persistence.saveTapeToDisk(this.currentTape, []);
+        this.currentTapeRecords = this.persistence.loadTapeFromDisk(
+          this.currentTape
+        );
+        //this.persistence.saveTapeToDisk(this.currentTape, []);
         return true;
       case "replay":
         try {
