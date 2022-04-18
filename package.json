@@ -12,6 +12,7 @@
   "license": "MIT",
   "scripts": {
     "start": "ts-node src/cli.ts",
+    "cors": "node proxy/index.js",
     "start:hot": "ts-node-dev --respawn src/cli.ts",
     "test": "jest --runInBand",
     "build": "rm -rf dist && tsc"
