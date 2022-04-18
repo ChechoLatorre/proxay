@@ -11,7 +11,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "start": "ts-node src/cli.ts",
+    "start": "ts-node src/cli.ts --mode record --host $API_1 --tapes-dir tapes/ --port 3000 --default-tape test1",
     "cors": "node proxy/index.js",
     "start:hot": "ts-node-dev --respawn src/cli.ts",
     "test": "jest --runInBand",
