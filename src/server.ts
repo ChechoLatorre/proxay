@@ -308,6 +308,7 @@ export class RecordReplayServer {
         timeout: this.timeout,
       }
     );
+    this.mapRecord = loadDataMap(path.join(this.tapeDir, `${this.defaultTape}.json`))
     let idRecord = Buffer.from(record.request.body).toString('base64') + Buffer.from(record.response.body).toString('base64')
     if(!this.mapRecord[idRecord]) {
       this.mapRecord[idRecord] = idRecord
